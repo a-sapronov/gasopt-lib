@@ -1,4 +1,4 @@
-def tses_gas_forecast(H, distance, *args, **kwargs):
+def generator_forecast(H, distance):
     '''Прогнозирует поребление природного газа в ЦЭС
 
     Args:
