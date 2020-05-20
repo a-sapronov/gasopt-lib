@@ -9,3 +9,6 @@
 
 # vim save file
 *.swp
+
+# jupyter checkpoints
+/.ipynb_checkpoints/

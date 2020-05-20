@@ -8,17 +8,30 @@ import joblib
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
+from sklearn.neural_network import MLPRegressor
+
+
+from LinearNNRegression import LinearNNRegression
+from LinearSARIMAX import LinearSARIMAX
+from LinearARCH import LinearARCH
+from LinearRNN import LinearRNN
+
+from MeanRegularizedExtrapolation import MeanRegularizedExtrapolation
 
 
 class ModelsMgr(object):
     ''' A class to manage predictive models '''
 
 
-    def __init__(self):
+    def __init__(self, depth, offset):
         self.models = {}
-        self.models['ridge'] = None
+        mlp = MLPRegressor(hidden_layer_sizes=(10,5), activation='relu', solver='lbfgs')
+        mre = MeanRegularizedExtrapolation(lag=depth, offset=offset, savgol=False, filter_window=11, filter_polyorder=1)
 
-        self.path_to_models = './examples/'
+        self.models['FFNN'] = LinearNNRegression(lin_regressor=mre, nn_regressor=mlp)
+        self.models['RNN'] = LinearRNN(lin_regressor=mre)
+        self.models['SARIMAX'] = LinearSARIMAX(lin_regressor=mre)
+        self.models['ARCH'] = LinearARCH(lin_regressor=mre)
 
     def get_model_names(self):
         return self.models.keys()
@@ -35,6 +48,28 @@ class ModelsMgr(object):
     def dump_all_models(self):
         for model_name, model in self.models:
             joblib.dump(model, model_name+'.pkl')
+
+    def get_forecasts(self, H, depth, horizon):
+        X, y = H.filter(regex='^f', axis=1).to_numpy(), H.filter(regex='^t', axis=1).to_numpy()
+
+        trained_models = []
+        for mname, model in self.models.items():
+            try:
+                model.fit(X,y)
+            except:
+                print('Error training model: '+mname)
+
+            trained_models.append(mname)
+
+        P = pd.DataFrame(columns=trained_models)
+
+        for mn in trained_models:
+            forecast = self.models[mn].predict(y[-1].reshape(1,-1))
+            #print(forecast.shape)
+            P[mn] = pd.Series(forecast.ravel())
+
+        return P
+
 
     def build_prediction_model(self, model_name, data_df):
         factors = ['thick_s', 'width_s', 'weight_s', 'slab_temp', 'l_thick', 'amb_t']

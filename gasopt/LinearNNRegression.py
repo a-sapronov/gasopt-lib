@@ -7,6 +7,8 @@ from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 from sklearn.utils.multiclass import unique_labels
 from sklearn.metrics import euclidean_distances
 
+from sklearn.preprocessing import MinMaxScaler
+
 class LinearNNRegression(BaseEstimator):
     """ A template estimator to be used as a reference implementation.
     For more information regarding how to build your own estimator, read more
@@ -19,6 +21,8 @@ class LinearNNRegression(BaseEstimator):
     def __init__(self, lin_regressor, nn_regressor):
         self.lin_regressor = lin_regressor
         self.nn_regressor = nn_regressor
+
+        self.minmaxscaler = MinMaxScaler(feature_range=(0.2, 0.8))
 
     def fit(self, X, y):
         """A reference implementation of a fitting function.
@@ -36,8 +40,8 @@ class LinearNNRegression(BaseEstimator):
         """
         X, y = check_X_y(X, y, accept_sparse=True, multi_output=True, y_numeric=True)
 
-        # first self.ts_depth features are the average gas consumption for 
-        # previous self.ts_depth days. They are used for extrapolation
+        X = self.minmaxscaler.fit_transform(X)
+        y = self.minmaxscaler.transform(y)
 
         self.lin_regressor.fit(X, y)
         y_linextr = self.lin_regressor.predict(X)
@@ -62,12 +66,15 @@ class LinearNNRegression(BaseEstimator):
             Returns an array of ones.
         """
         X = check_array(X, accept_sparse=True)
+        X = self.minmaxscaler.transform(X)
         check_is_fitted(self, 'is_fitted_')
 
         y_linextr = self.lin_regressor.predict(X)
         y_resid = self.nn_regressor.predict(X)
 
         y = y_linextr + y_resid
+
+        y = self.minmaxscaler.inverse_transform(y)
 
         return y
 

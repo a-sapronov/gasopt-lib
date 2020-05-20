@@ -7,12 +7,13 @@ import torch.nn as nn
 
 
 class VanillaRNN(nn.Module):
-    def __init__(self, input_size, output_size, hidden_dim, n_layers: int=1):
+    def __init__(self, input_size, output_size, hidden_dim, device, n_layers=1):
         super(VanillaRNN, self).__init__()
 
         # Defining some parameters
         self.hidden_dim = hidden_dim
         self.n_layers = n_layers
+        self.device = device
 
         #Defining the layers
         # RNN Layer
@@ -38,7 +39,7 @@ class VanillaRNN(nn.Module):
     
     def init_hidden(self, batch_size):
         # This method generates the first hidden state of zeros which we'll use in the forward pass
-        hidden = torch.zeros(self.n_layers, batch_size, self.hidden_dim).to(device)
+        hidden = torch.zeros(self.n_layers, batch_size, self.hidden_dim).to(self.device)
         
          # We'll send the tensor holding the hidden state to the device we specified earlier as well
         return hidden

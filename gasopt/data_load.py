@@ -24,27 +24,27 @@ def furn_forecast_data_process(input_data_str):
 
     for ifurn in furnaces:
         G = None
-	try:
-	    G = read_gas(input_data_str, ifurn)
-	except Exception as exc:
-	    traceback.print_exc()
-	    continue
+        try:
+            G = read_gas(input_data_str, ifurn)
+        except Exception as exc:
+            traceback.print_exc()
+            continue
 
-	df = None
-	try:
-	    df = G.loc[~G[('№ печи','Unnamed: 1_level_1')].isnull(),
-		       (['Дата загрузки', '№ печи', 'Расход газа'], zones)]
-	except Exception as exc:
-	    traceback.print_exc()
-	    continue
-	    
-	df.columns = ['datetime', 'furn', 'gas']
+        df = None
+        try:
+            df = G.loc[~G[('№ печи','Unnamed: 1_level_1')].isnull(),
+                       (['Дата загрузки', '№ печи', 'Расход газа'], zones)]
+        except Exception as exc:
+            traceback.print_exc()
+            continue
+            
+        df.columns = ['datetime', 'furn', 'gas']
 
-	df['datetime'] = df['datetime'].apply(fix_minutes)
+        df['datetime'] = df['datetime'].apply(fix_minutes)
         df['dt_hour'] = df['datetime'].dt.floor('H')
-	df_hour = df.groupby('dt_hour')['gas'].mean().to_frame()
+        df_hour = df.groupby('dt_hour')['gas'].mean().to_frame()
 
-	D[ifurn] = df_hour['gas']
+        D[ifurn] = df_hour['gas']
 
     D.reset_index(inplace=True)
 
@@ -89,25 +89,23 @@ def tses_forecast_data_process(input_data_str):
     G = None
 
     try:
-	G = read_gas(input_data_str, 0)
+        G = read_gas(input_data_str, 0)
     except Exception as exc:
-	traceback.print_exc()
-	continue
+        traceback.print_exc()
 
     df = None
     try:
         df = G.loc[:,(zones, ['Дата', 'тыс.м3/ч', 'град.С'])]
     except Exception as exc:
-	traceback.print_exc()
-	continue
-	
+        traceback.print_exc()
+        
     df.columns = ['datetime', 'gas', 'amb_t']
 
     df['datetime'] = df['datetime'].apply(fix_minutes)
     df.set_index('datetime', drop=True, inplace=True)
 
     D['gas'] = df['gas']
-	
+        
     D.fillna(0, inplace=True)
     return D
 
@@ -126,4 +124,26 @@ def fix_minutes(gas_dt):
     new_dt = datetime.datetime(gas_dt.year, gas_dt.month, gas_dt.day, gas_dt.hour) + dhour + dminute
 
     return new_dt
+
+def build_furn_dataset(D, depth, horizon, furn_id):
+    offset = 0
+
+    D.reset_index(drop=True, inplace=True)
+
+    features = ['f'+str(i) for i in range(-depth,0)]
+    targets = ['t'+str(i) for i in range(horizon)]
+
+    O = pd.DataFrame(columns=['datetime']+features+targets)
+
+    for ix in range(depth, len(D)-horizon-offset):
+        
+        if not ix%100:
+            print(ix)
+        #print(ix-depth)
+        DT = pd.Series(D.loc[ix-depth, 'dt_hour'], index=['datetime'])
+        SF = pd.Series(D.loc[ix-depth:ix-1, furn_id].values, index=features)
+        ST = pd.Series(D.loc[ix+offset:ix-1+offset+horizon, furn_id].values, index=targets)
+        O.loc[ix-depth] = pd.concat([DT,SF,ST])
+
+    return O
 

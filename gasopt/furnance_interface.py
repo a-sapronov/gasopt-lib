@@ -1,6 +1,6 @@
 import sys
 
-from modlesmgr import ModelsMgr
+from modelsmgr import ModelsMgr
 from data_load import build_furn_dataset
 
 def furnace_forecast(H, horizon, furn_id):
@@ -29,11 +29,9 @@ def furnace_forecast(H, horizon, furn_id):
 
     gas_dataset = build_furn_dataset(H[-training_depth:], depth, horizon, furn_id)
 
-    mm = ModelsMgr()
-    for model in mm.models():
+    mm = ModelsMgr(depth=depth, offset=0)
+    P = mm.get_forecasts(gas_dataset, depth, horizon)
 
-
-    pass
     return P
 
 def furnace_optimization(S, duration, furn_id):
