@@ -2,6 +2,11 @@ import datetime
 import numpy as np
 import pandas as pd
 
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OneHotEncoder
+
+from joblib import load
+
 import traceback
 
 def furn_forecast_data_process(input_data_str):
@@ -9,7 +14,7 @@ def furn_forecast_data_process(input_data_str):
     для модулей прогнозирования потребления ПГ в ЛПЦ-10
 
     Args:
-        input_data_str: данные для конвертации (CSV)
+        input_data_str: данные для конвертации (EXCEL)
 
     Returns:
         D: (pd.DataFrame): таблица данных в формате pandas.DataFrame
@@ -69,7 +74,32 @@ def furn_optimization_data_process(input_data_str):
 
     '''
 
-    pass
+    input_fields = ['length_s', 'width_s', 'weight_s', 'slab_temp', 'l_thick', 'dt_prev', 'row', 'mark']
+
+    try:
+        S = pd.read_csv('test-slab-input-furn1.csv', ';', names=input_fields,header=0, encoding='cp1251')
+    except RuntimeError:
+        print('Unable to read input data for gas optimization')
+
+    D = fill_missing(S)
+    #print(D)
+
+    D['area_s'] = D.length_s * D.width_s
+    D['vacant_area'] = D[['length_s', 'width_s']].apply(calc_vacant_area, axis=1)
+
+    ohe = None
+    try:
+        ohe = load('mark-encoder.joblib')
+    except RuntimeError:
+        print('Unable to load steel mark encoder')
+
+    mark_enc_features = ['mark_'+str(ir) for ir in range(ohe.categories_[0].shape[0])]
+
+    D[mark_enc_features] = D.mark.apply(encode_mark, args=[ohe])
+    D['t_unl'] = 1250
+    D['temp_gain'] = D['t_unl'] - D['slab_temp']
+    D['heat_gain'] = D['temp_gain']*D['weight_s']
+
     return D
 
 def tses_forecast_data_process(input_data_str):
@@ -89,7 +119,7 @@ def tses_forecast_data_process(input_data_str):
     G = None
 
     try:
-        G = read_gas(input_data_str, 0)
+        G = read_tses_gas(input_data_str, 0)
     except Exception as exc:
         traceback.print_exc()
 
@@ -101,7 +131,7 @@ def tses_forecast_data_process(input_data_str):
         
     df.columns = ['datetime', 'gas', 'amb_t']
 
-    df['datetime'] = df['datetime'].apply(fix_minutes)
+    #df['datetime'] = df['datetime'].apply(fix_minutes)
     df.set_index('datetime', drop=True, inplace=True)
 
     D['gas'] = df['gas']
@@ -147,3 +177,56 @@ def build_furn_dataset(D, depth, horizon, furn_id):
 
     return O
 
+def build_tses_dataset(D, depth, horizon):
+    offset = 0
+
+    D.reset_index(drop=False, inplace=True)
+
+    features = ['f'+str(i) for i in range(-depth,0)]
+    targets = ['t'+str(i) for i in range(horizon)]
+
+    O = pd.DataFrame(columns=['datetime']+features+targets)
+
+    for ix in range(depth, len(D)-horizon-offset):
+        
+        if not ix%100:
+            print(ix)
+        #print(ix-depth)
+        DT = pd.Series(D.loc[ix-depth, 'datetime'], index=['datetime'])
+        SF = pd.Series(D.loc[ix-depth:ix-1, 'gas'].values, index=features)
+        ST = pd.Series(D.loc[ix+offset:ix-1+offset+horizon, 'gas'].values, index=targets)
+        O.loc[ix-depth] = pd.concat([DT,SF,ST])
+
+    return O
+
+
+def calc_vacant_area(x):
+    va = 0.
+    l = x['length_s']
+    w = x['width_s']
+    
+    if l <= 6000:
+        va = (12000 - 2.*l)*w
+    elif l > 6000 and l < 12000:
+        va = (12000 - l)*w
+    else:
+        va = 0.
+        
+    return va
+
+def encode_mark(mark, ohe):
+    mark_enc_features = ['mark_'+str(ir) for ir in range(ohe.categories_[0].shape[0])]
+    slab_range_marks = ohe.transform(np.array(mark).reshape(-1,1))
+
+    return pd.Series(slab_range_marks[0], index=mark_enc_features)
+
+
+def fill_missing(I, notfill=[]):
+    filler_report = {}
+    imp = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
+    D = I.drop(notfill, axis=1)
+    imp.fit(D.values)
+    F = pd.DataFrame(imp.transform(D.values), columns = D.columns)
+
+    filler_report['filled_entries'] = imp.statistics_
+    return F

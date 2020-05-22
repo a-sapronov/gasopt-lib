@@ -23,6 +23,8 @@ class LinearARCH(BaseEstimator):
         self.arch_model = None
         self.arch_result = None
 
+        self.arch_rescale = 0.01
+
     def fit(self, X, y):
         """A reference implementation of a fitting function.
         Parameters
@@ -47,7 +49,7 @@ class LinearARCH(BaseEstimator):
 
         y_resid = y - y_linextr
 
-        self.arch_model = arch_model(y_resid[:,0]*0.01)
+        self.arch_model = arch_model(y_resid[:,0]*self.arch_rescale)
 
         self.arch_result = self.fit_arch()
 
@@ -82,7 +84,7 @@ class LinearARCH(BaseEstimator):
         check_is_fitted(self, 'is_fitted_')
 
         y_linextr = self.lin_regressor.predict(X)
-        y_resid = self.arch_result.forecast(horizon=24, start=0).mean.iloc[-1].values
+        y_resid = self.arch_result.forecast(horizon=24, start=0).mean.iloc[-1].values/self.arch_rescale
 
         y = y_linextr + y_resid
 

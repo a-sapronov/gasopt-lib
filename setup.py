@@ -1,13 +1,13 @@
 from setuptools import setup
 
-setup(name='gasopt',
+setup(name='gasopt-lib',
     version='0.1',
-    description='Optimization of gas consumption for MMK LPC-10 furnaces',
+    description='Optimization of gas consumption',
     url='',
     author='Andrey Sapronov',
     author_email='asapronov@hse.ru',
     license='LGPL',
-    packages=['gasopt'],
+    packages=['gasopt-lib'],
     install_requires=[
         'pandas', 'numpy', 'scipy', 'matplotlib', 'nose'
     ],

@@ -1,3 +1,9 @@
+import sys
+
+from modelsmgr import ModelsMgr
+from data_load import build_tses_dataset
+
+
 def generator_forecast(H, horizon):
     '''Прогнозирует поребление природного газа в ЦЭС
 
@@ -12,6 +18,21 @@ def generator_forecast(H, horizon):
         в 'H'
 
     '''
+
+    depth = 24
+    training_depth = 720
+    if len(H) < training_depth:
+        print('Error: not enough data for forecast training. \n  \
+            Need at least one month of hourly data of gas consumption')
+
+        sys.exit(1)
+
+    gas_dataset = build_tses_dataset(H[-training_depth:], depth, horizon)
+
+    mm = ModelsMgr(depth=depth, offset=0)
+    P = mm.get_forecasts(gas_dataset, depth, horizon)
+
+    return P
 
 
     pass
