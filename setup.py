@@ -1,13 +1,13 @@
 from setuptools import setup
 
-setup(name='gasopt-lib',
+setup(name='gasopt',
     version='0.1',
     description='Optimization of gas consumption',
     url='',
     author='Andrey Sapronov',
     author_email='asapronov@hse.ru',
     license='LGPL',
-    packages=['gasopt-lib'],
+    packages=['gasopt'],
     install_requires=[
         'pandas', 'numpy', 'scipy', 'matplotlib', 'nose'
     ],
