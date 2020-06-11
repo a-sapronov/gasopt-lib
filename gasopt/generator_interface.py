@@ -1,7 +1,7 @@
 import sys
 
-from modelsmgr import ModelsMgr
-from data_load import build_tses_dataset
+from gasopt.modelsmgr import ModelsMgr
+from gasopt.data_load import build_tses_dataset
 
 
 def generator_forecast(H, horizon):

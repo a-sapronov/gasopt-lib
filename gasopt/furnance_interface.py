@@ -5,8 +5,8 @@ import numpy as np
 
 import joblib
 
-from modelsmgr import ModelsMgr
-from data_load import build_furn_dataset
+from gasopt.modelsmgr import ModelsMgr
+from gasopt.data_load import build_furn_dataset
 
 
 def furnace_forecast(H, horizon, furn_id):

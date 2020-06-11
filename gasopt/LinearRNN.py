@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 import torch.utils.data
 
-from VanillaRNN import VanillaRNN
+from gasopt.VanillaRNN import VanillaRNN
 
 class LinearRNN(BaseEstimator):
     """ A template estimator to be used as a reference implementation.

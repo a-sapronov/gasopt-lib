@@ -11,12 +11,12 @@ from sklearn.pipeline import Pipeline
 from sklearn.neural_network import MLPRegressor
 
 
-from LinearNNRegression import LinearNNRegression
-from LinearSARIMAX import LinearSARIMAX
-from LinearARCH import LinearARCH
-from LinearRNN import LinearRNN
+from gasopt.LinearNNRegression import LinearNNRegression
+from gasopt.LinearSARIMAX import LinearSARIMAX
+from gasopt.LinearARCH import LinearARCH
+from gasopt.LinearRNN import LinearRNN
 
-from MeanRegularizedExtrapolation import MeanRegularizedExtrapolation
+from gasopt.MeanRegularizedExtrapolation import MeanRegularizedExtrapolation
 
 
 class ModelsMgr(object):
