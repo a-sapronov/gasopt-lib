@@ -4,7 +4,7 @@ from gasopt.modelsmgr import ModelsMgr
 from gasopt.data_load import build_tses_dataset
 
 
-def generator_forecast(H, horizon):
+def generator_forecast(H, horizon, output_csv=None):
     '''Прогнозирует поребление природного газа в ЦЭС
 
     Args:
@@ -27,14 +27,24 @@ def generator_forecast(H, horizon):
 
         sys.exit(1)
 
-    gas_dataset = build_tses_dataset(H[-training_depth:], depth, horizon)
+    if horizon > 5:
+        print('Error: the requested forecasting horizon is too long.')
+        sys.exit(1)
 
-    mm = ModelsMgr(depth=depth, offset=0)
-    P = mm.get_forecasts(gas_dataset, depth, horizon)
+    horizon_hours = horizon*24
+    gas_dataset = build_tses_dataset(H[-training_depth:], depth, horizon_hours)
 
-    return P
+    mm = ModelsMgr(depth=depth, offset=0, horizon=horizon_hours)
+    P = mm.get_forecasts(gas_dataset, depth, horizon_hours)
 
+    if not len(P):
+        raise ValueError('Forecast result is empty, cannot agregate to hours')
 
-    pass
-    return P
+    P_hour = P.rolling(window=24,center=True).sum().iloc[12::24,:]
+
+    if output_csv:
+        P_hour.to_csv(output_csv, ';', index=False)
+
+    return P_hour
+
 
