@@ -18,10 +18,11 @@ class LinearARCH(BaseEstimator):
     ts_depth : int, default=2
         A parameter of time series depth for linear regression.
     """
-    def __init__(self, lin_regressor):
+    def __init__(self, lin_regressor, horizon=24):
         self.lin_regressor = lin_regressor
         self.arch_model = None
         self.arch_result = None
+        self.horizon = horizon
 
         self.arch_rescale = 0.01
 
@@ -84,7 +85,7 @@ class LinearARCH(BaseEstimator):
         check_is_fitted(self, 'is_fitted_')
 
         y_linextr = self.lin_regressor.predict(X)
-        y_resid = self.arch_result.forecast(horizon=24, start=0).mean.iloc[-1].values/self.arch_rescale
+        y_resid = self.arch_result.forecast(horizon=self.horizon, start=0).mean.iloc[-1].values/self.arch_rescale
 
         y = y_linextr + y_resid
 

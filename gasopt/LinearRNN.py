@@ -41,7 +41,8 @@ class LinearRNN(BaseEstimator):
         self.optimizer = torch.optim.Adam(self.rnn.parameters(), lr=self.lr)
         print(self.rnn)
 
-        self.minmaxscaler = MinMaxScaler(feature_range=(0.2, 0.8))
+        self.Xscaler = MinMaxScaler(feature_range=(0.2, 0.8))
+        self.yscaler = MinMaxScaler(feature_range=(0.2, 0.8))
 
 
     def fit(self, X, y):
@@ -63,8 +64,8 @@ class LinearRNN(BaseEstimator):
         # first self.ts_depth features are the average gas consumption for 
         # previous self.ts_depth days. They are used for extrapolation
 
-        X = self.minmaxscaler.fit_transform(X)
-        y = self.minmaxscaler.transform(y)
+        X = self.Xscaler.fit_transform(X)
+        y = self.yscaler.fit_transform(y)
 
         self.lin_regressor.fit(X, y)
         y_linextr = self.lin_regressor.predict(X)
@@ -109,7 +110,7 @@ class LinearRNN(BaseEstimator):
         """
 
         X = check_array(X, accept_sparse=True)
-        X = self.minmaxscaler.transform(X)
+        X = self.Xscaler.transform(X)
         check_is_fitted(self, 'is_fitted_')
 
         y_linextr = self.lin_regressor.predict(X)
@@ -121,7 +122,7 @@ class LinearRNN(BaseEstimator):
         #print(y_resid)
 
         y = y_linextr + y_resid
-        y = self.minmaxscaler.inverse_transform(y)
+        y = self.yscaler.inverse_transform(y)
 
         return y
 

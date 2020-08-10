@@ -23,15 +23,15 @@ class ModelsMgr(object):
     ''' A class to manage predictive models '''
 
 
-    def __init__(self, depth, offset):
+    def __init__(self, depth, offset, horizon):
         self.models = {}
         mlp = MLPRegressor(hidden_layer_sizes=(10,5), activation='relu', solver='lbfgs')
         mre = MeanRegularizedExtrapolation(lag=depth, offset=offset, savgol=False, filter_window=11, filter_polyorder=1)
 
         self.models['FFNN'] = LinearNNRegression(lin_regressor=mre, nn_regressor=mlp)
-        self.models['RNN'] = LinearRNN(lin_regressor=mre)
+        self.models['RNN'] = LinearRNN(lin_regressor=mre, horizon=horizon)
         self.models['SARIMAX'] = LinearSARIMAX(lin_regressor=mre)
-        self.models['ARCH'] = LinearARCH(lin_regressor=mre)
+        self.models['ARCH'] = LinearARCH(lin_regressor=mre, horizon=horizon)
 
     def get_model_names(self):
         return self.models.keys()
@@ -64,7 +64,7 @@ class ModelsMgr(object):
         P = pd.DataFrame(columns=trained_models)
 
         for mn in trained_models:
-            forecast = self.models[mn].predict(y[-1].reshape(1,-1))
+            forecast = self.models[mn].predict(H.iloc[-depth:,-1].to_numpy().reshape(1,-1))
             #print(forecast.shape)
             P[mn] = pd.Series(forecast.ravel())
 
