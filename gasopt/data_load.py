@@ -87,6 +87,12 @@ def furn_optimization_data_process(input_data_str):
     D['area_s'] = D.length_s * D.width_s
     D['vacant_area'] = D[['length_s', 'width_s']].apply(calc_vacant_area, axis=1)
 
+    # convert unknown steel marks to 'other'
+    top_marks = ['08пс', 'Ст3сп', 'SAE 1006', '20', 'Ст2пс', '09Г2С', '08Ю', 'S235JR', 'DD11',
+        '10пс', 'Ст3пс', 'DX54D', 'Ст1пс', 'DD11-1', '10ХНДП', 'DX51D', '2', '07ГБЮ', '10',
+        '08ЮР']
+    D['mark'] = D.mark.apply(lambda m: 'other' if m not in top_marks else m)
+
     ohe = None
     try:
         ohe = load('mark-encoder.joblib')

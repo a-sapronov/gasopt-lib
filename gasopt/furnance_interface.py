@@ -54,7 +54,7 @@ def furnace_forecast(H, horizon, furn_id, output_csv=None):
 
     return P_hour
 
-def furnace_optimization(S, furn_id):
+def furnace_optimization(S, furn_id, output_csv=None):
     '''Вычисляет оптимальный расход газа по зонам исходя из требуемого
     набора слябов.
 
@@ -91,6 +91,9 @@ def furnace_optimization(S, furn_id):
         y = model.predict(X)
 
         G[z] = y
+
+    if output_csv:
+        G.to_csv(output_csv, ';', index=False)
 
     return G
 

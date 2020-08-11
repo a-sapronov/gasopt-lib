@@ -7,6 +7,6 @@ from gasopt.furnance_interface import furnace_optimization
 G = furn_optimization_data_process('./test-slab-input-furn1.csv')
 
 # Получить рекомендованные настройки газа для зон печи 1 для каждого сляба
-F = furnace_optimization(G, furn_id=1)
+F = furnace_optimization(G, furn_id=1, output_csv='optimization_test.csv')
 
 print(F)
