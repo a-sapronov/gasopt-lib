@@ -34,7 +34,7 @@ def furnace_forecast(H, horizon, furn_id, output_csv=None):
 
         sys.exit(1)
 
-    if horizon > 5:
+    if horizon > 7:
         print('Error: the requested forecasting horizon is too long.')
         sys.exit(1)
 
@@ -42,7 +42,7 @@ def furnace_forecast(H, horizon, furn_id, output_csv=None):
     gas_dataset = build_furn_dataset(H[-training_depth:], depth, horizon_hours, furn_id)
 
     mm = ModelsMgr(depth=depth, offset=0, horizon=horizon_hours)
-    P = mm.get_forecasts(gas_dataset, depth, horizon_hours)
+    P, scores = mm.get_forecasts(gas_dataset, depth, horizon_hours)
 
     if not len(P):
         raise ValueError('Forecast result is empty, cannot agregate to hours')
@@ -52,7 +52,7 @@ def furnace_forecast(H, horizon, furn_id, output_csv=None):
     if output_csv:
         P_hour.to_csv(output_csv, ';', index=False)
 
-    return P_hour
+    return P_hour, scores
 
 def furnace_optimization(S, furn_id, output_csv=None):
     '''Вычисляет оптимальный расход газа по зонам исходя из требуемого

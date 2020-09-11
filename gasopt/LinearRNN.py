@@ -14,6 +14,7 @@ import torch.nn as nn
 import torch.utils.data
 
 from gasopt.VanillaRNN import VanillaRNN
+from gasopt.utils import compute_metrics
 
 class LinearRNN(BaseEstimator):
     """ A template estimator to be used as a reference implementation.
@@ -125,6 +126,27 @@ class LinearRNN(BaseEstimator):
         y = self.yscaler.inverse_transform(y)
 
         return y
+
+    def score(self, X, y):
+        """An implementation of a scoring function.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+            The training input samples.
+        y : array-like, shape (n_samples,) or (n_samples, n_outputs)
+            The target values (class labels in classification, real numbers in
+            regression).
+        Returns
+        -------
+        self : object
+            Returns self.
+        """
+        X, y = check_X_y(X, y, accept_sparse=True, multi_output=True, y_numeric=True)
+
+        y_pred = self.predict(X)
+        metrics = compute_metrics(y, y, y_pred)
+
+        return metrics['mape']
 
 #    def set_params(self, **params):
 #        lin_params = {}

@@ -35,7 +35,7 @@ def generator_forecast(H, horizon, output_csv=None):
     gas_dataset = build_tses_dataset(H[-training_depth:], depth, horizon_hours)
 
     mm = ModelsMgr(depth=depth, offset=0, horizon=horizon_hours)
-    P = mm.get_forecasts(gas_dataset, depth, horizon_hours)
+    P, scores = mm.get_forecasts(gas_dataset, depth, horizon_hours)
 
     if not len(P):
         raise ValueError('Forecast result is empty, cannot agregate to hours')
@@ -45,6 +45,6 @@ def generator_forecast(H, horizon, output_csv=None):
     if output_csv:
         P_hour.to_csv(output_csv, ';', index=False)
 
-    return P_hour
+    return P_hour, scores
 
 

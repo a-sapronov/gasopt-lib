@@ -1,7 +1,7 @@
 import pandas as pd
 
 from gasopt.data_load import furn_forecast_data_process
-from gasopt.furnance_interface import furnace_forecast
+from gasopt.furnace_interface import furnace_forecast
 
 # Открыть dataframe с историческими данными
 G = furn_forecast_data_process('./test_data/gas-expense-10.19.xlsx')

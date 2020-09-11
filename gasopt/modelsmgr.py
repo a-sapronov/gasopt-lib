@@ -63,12 +63,14 @@ class ModelsMgr(object):
 
         P = pd.DataFrame(columns=trained_models)
 
+        scores = {}
         for mn in trained_models:
             forecast = self.models[mn].predict(H.iloc[-depth:,-1].to_numpy().reshape(1,-1))
+            scores[mn] = self.models[mn].score(X[-depth:], y[-depth:])
             #print(forecast.shape)
             P[mn] = pd.Series(forecast.ravel())
 
-        return P
+        return P, scores
 
 
     def build_prediction_model(self, model_name, data_df):

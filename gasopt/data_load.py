@@ -62,7 +62,7 @@ def read_gas(gas_excel, furn):
         
     return G
 
-def furn_optimization_data_process(input_data_str):
+def furn_optimization_data_process(input_data_str=None, slabs_df=None):
     '''Конвертирует данные из текстового формата в pandas-датафрейм
     для модулей оптимизации потребления ПГ в ЛПЦ-10
 
@@ -75,11 +75,15 @@ def furn_optimization_data_process(input_data_str):
     '''
 
     input_fields = ['length_s', 'width_s', 'weight_s', 'slab_temp', 'l_thick', 'dt_prev', 'row', 'mark']
+    S = None
 
-    try:
-        S = pd.read_csv('test-slab-input-furn1.csv', ';', names=input_fields,header=0, encoding='cp1251')
-    except RuntimeError:
-        print('Unable to read input data for gas optimization')
+    if slabs_df is None:
+        try:
+            S = pd.read_csv(input_data_str, ';', names=input_fields,header=0, encoding='cp1251')
+        except RuntimeError:
+            print('Unable to read input data for gas optimization')
+    else:
+        S = slabs_df
 
     D = fill_missing(S)
     #print(D)

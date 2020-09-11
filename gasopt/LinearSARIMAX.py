@@ -12,6 +12,8 @@ import statsmodels.tsa.api as smt
 import statsmodels.api as sm
 import scipy.stats as scs
 
+from gasopt.utils import compute_metrics
+
 class LinearSARIMAX(BaseEstimator):
     """ A template estimator to be used as a reference implementation.
     For more information regarding how to build your own estimator, read more
@@ -83,11 +85,34 @@ class LinearSARIMAX(BaseEstimator):
         check_is_fitted(self, 'is_fitted_')
 
         y_linextr = self.lin_regressor.predict(X)
-        y_resid = self.sarimax.predict(start=0,end=len(y_linextr)-1)
+        y_resid = np.ndarray(y_linextr.shape)
+        for ix in range(X.shape[0]):
+            y_resid[ix,:] = self.sarimax.predict(start=0,end=y_linextr.shape[1]-1)
 
         y = y_linextr + y_resid
 
         return y
+
+    def score(self, X, y):
+        """An implementation of a scoring function.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+            The training input samples.
+        y : array-like, shape (n_samples,) or (n_samples, n_outputs)
+            The target values (class labels in classification, real numbers in
+            regression).
+        Returns
+        -------
+        self : object
+            Returns self.
+        """
+        X, y = check_X_y(X, y, accept_sparse=True, multi_output=True, y_numeric=True)
+
+        y_pred = self.predict(X)
+        metrics = compute_metrics(y, y, y_pred)
+
+        return metrics['mape']
 
 #    def set_params(self, **params):
 #        lin_params = {}
