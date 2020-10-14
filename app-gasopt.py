@@ -5,6 +5,7 @@ import os
 import pandas as pd
 import glob
 import hashlib
+import json
 from datetime import date, datetime, timedelta
 
 from urllib.request import urlretrieve
@@ -105,8 +106,15 @@ def api_optimize():
     """Optimization API call
     """
 
-    slabs_df, error_str = read_slabs_from_json(request.json['slabs'])
-    if not slabs_df:
+    try:
+        json.loads(request.data)
+    except Exception as e:
+        responses = jsonify(status=-1, error=repr(e))
+        responses.status_code = 200
+        return responses
+
+    slabs_df, error_str = read_slabs_from_json(request.json.get('slabs'))
+    if slabs_df is None:
         responses = jsonify(status=-1, error=error_str)
         responses.status_code = 200
         return responses
@@ -164,11 +172,12 @@ def read_slabs_from_json(slabs_json):
     error_str = None
     try:
         slabs_df = pd.DataFrame(slabs_json)
-    except:
-        error_str = "Bad json with slab data"
-
+    except Exception as e:
+        return slabs_df, repr(e)
+        
     slab_fields = ['length_s', 'width_s', 'weight_s', 'slab_temp', 'l_thick', 'dt_prev', 'row', 'mark']
     if not all (sf in slabs_df.columns for sf in slab_fields):
+        slabs_df = None
         error_str = 'Bad slab data'
 
     return slabs_df, error_str
