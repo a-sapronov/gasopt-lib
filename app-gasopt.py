@@ -140,10 +140,13 @@ def get_history_file(reqargs):
     try: 
         urlretrieve(history_data_url, history_data_fname)
     except:
+        history_data_fname = None
         error_str = 'Historic data not available'
+        return history_data_fname, error_str
 
     if hashlib.md5(open(history_data_fname, 'rb').read()).hexdigest() \
             != reqargs.get('file_md5'):
+        history_data_fname = None
         error_str = 'md5 check failed for history data file'
 
     return history_data_fname, error_str
