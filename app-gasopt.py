@@ -43,7 +43,10 @@ def api_forecast():
         try:
             D = furn_forecast_data_process(history_data_xlsx)
         except Exception as e:
-            raise e
+            print(repr(e))
+            responses = jsonify(status=-1, error='Falied to preprocess historic data')
+            responses.status_code = 200
+            return(responses)
             
         D.to_pickle(f'{shop_code}_{HISTORY_PREPROCESSED_DATA_FNAME}')
 
@@ -73,18 +76,29 @@ def api_forecast():
 
         output_pkl = f'./{shop_code}_forecast_s_{date_str}_h_{horizon_from_start}_furn_{furnace_id}.pkl'
         scores_pkl = f'./{shop_code}_scores_s_{date_str}_h_{horizon_from_start}_furn_{furnace_id}.pkl'
-        F = None
+        F, scores = None, None
+
+        D = pd.read_pickle(f'{shop_code}_{HISTORY_PREPROCESSED_DATA_FNAME}')
+        last_history_date = D.dt_hour.iloc[-1].date()
+        offset = (date_start - last_history_date).days
+
+        if offset < 0:
+            responses = jsonify(status=-1, error='Invalid forecast start date: must be later than the last historic data date')
+            responses.status_code = 200
+            return responses
 
         if os.path.isfile(output_pkl) and os.path.isfile(scores_pkl):
             F = pd.read_pickle(output_pkl)
             scores = pd.read_pickle(scores_pkl)
         else:
-            D = pd.read_pickle(f'{shop_code}_{HISTORY_PREPROCESSED_DATA_FNAME}')
-            last_history_date = D.dt_hour.iloc[-1].date()
-            offset = (date_start - last_history_date).days
-
-            F, scores = furnace_forecast(D,
-                    horizon=horizon_from_start+offset, furn_id=furnace_id)
+            try:
+                F, scores = furnace_forecast(D,
+                        horizon=horizon_from_start+offset, furn_id=furnace_id)
+            except Exception as e:
+                print(repr(e))
+                responses = jsonify(status=-1, error='Forecast failure')
+                responses.status_code = 200
+                return responses
 
             dates = pd.date_range(last_history_date+timedelta(days=1), periods=offset+horizon_from_start)
             F.set_index(dates, inplace=True, drop=True)
@@ -120,10 +134,27 @@ def api_optimize():
         return responses
 
     # read fetched data into dataframe
-    gas_df = furn_optimization_data_process(slabs_df=slabs_df)
+    gas_df = None
+    try:
+        gas_df = furn_optimization_data_process(slabs_df=slabs_df)
+    except Exception as e:
+        print(repr(e))
+
+    if gas_df is None:
+        responses = jsonify(status=-1, error='Failed to preprocess gasa data')
+        responses.status_code = 200
+        return responses
 
     # calculate optimized gas values
-    furn_opt_df = furnace_optimization(gas_df, furn_id=request.args.get('furn_id'))
+    try:
+        furn_opt_df = furnace_optimization(gas_df, furn_id=request.args.get('furn_id'))
+    except Exception as e:
+        print(repr(e))
+
+    if gas_df is None:
+        responses = jsonify(status=-1, error='Optimization failure')
+        responses.status_code = 200
+        return responses
 
     responses = jsonify(optimized_gas=furn_opt_df.to_json())
     responses.status_code = 200
@@ -141,7 +172,7 @@ def get_history_file(reqargs):
         urlretrieve(history_data_url, history_data_fname)
     except:
         history_data_fname = None
-        error_str = 'Historic data not available'
+        error_str = 'Bad historic data URL'
         return history_data_fname, error_str
 
     if hashlib.md5(open(history_data_fname, 'rb').read()).hexdigest() \

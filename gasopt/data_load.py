@@ -32,16 +32,16 @@ def furn_forecast_data_process(input_data_str):
         try:
             G = read_gas(input_data_str, ifurn)
         except Exception as exc:
-            traceback.print_exc()
-            continue
+            print('Unable to read gas data')
+            raise exc
 
         df = None
         try:
             df = G.loc[~G[('№ печи','Unnamed: 1_level_1')].isnull(),
                        (['Дата загрузки', '№ печи', 'Расход газа'], zones)]
         except Exception as exc:
-            traceback.print_exc()
-            continue
+            print('Gas data fields not found in the LPC input file')
+            raise exc
             
         df.columns = ['datetime', 'furn', 'gas']
 
@@ -80,8 +80,9 @@ def furn_optimization_data_process(input_data_str=None, slabs_df=None):
     if slabs_df is None:
         try:
             S = pd.read_csv(input_data_str, ';', names=input_fields,header=0, encoding='cp1251')
-        except RuntimeError:
-            print('Unable to read input data for gas optimization')
+        except Exception as exc:
+            print('Unable to read input slab data for gas optimization')
+            raise exc
     else:
         S = slabs_df
 
@@ -100,8 +101,9 @@ def furn_optimization_data_process(input_data_str=None, slabs_df=None):
     ohe = None
     try:
         ohe = load('mark-encoder.joblib')
-    except RuntimeError:
+    except Exception as exc:
         print('Unable to load steel mark encoder')
+        raise exc
 
     mark_enc_features = ['mark_'+str(ir) for ir in range(ohe.categories_[0].shape[0])]
 
@@ -131,13 +133,15 @@ def tses_forecast_data_process(input_data_str):
     try:
         G = read_tses_gas(input_data_str, 0)
     except Exception as exc:
-        traceback.print_exc()
+        print('Unable to read TSES gas data')
+        raise exc
 
     df = None
     try:
         df = G.loc[:,(zones, ['Дата', 'тыс.м3/ч', 'град.С'])]
     except Exception as exc:
-        traceback.print_exc()
+        print('Gas data fields not found in the TSES input file')
+        raise exc
         
     df.columns = ['datetime', 'gas', 'amb_t']
 

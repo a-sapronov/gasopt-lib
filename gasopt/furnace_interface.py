@@ -29,20 +29,21 @@ def furnace_forecast(H, horizon, furn_id, output_csv=None):
     depth = 24
     training_depth = 720
     if len(H) < training_depth:
-        print('Error: not enough data for forecast training. \n  \
+        raise ValueError('Not enough data for forecast training. \n  \
             Need at least one month of hourly data of gas consumption')
 
-        sys.exit(1)
-
     if horizon > 7:
-        print('Error: the requested forecasting horizon is too long.')
-        sys.exit(1)
+        raise ValueError('The requested forecasting horizon is too long.')
 
     horizon_hours = horizon*24
     gas_dataset = build_furn_dataset(H[-training_depth:], depth, horizon_hours, furn_id)
 
     mm = ModelsMgr(depth=depth, offset=0, horizon=horizon_hours)
-    P, scores = mm.get_forecasts(gas_dataset, depth, horizon_hours)
+    P, scores = None, None
+    try:
+        P, scores = mm.get_forecasts(gas_dataset, depth, horizon_hours)
+    except:
+        raise RuntimeError('Forecast failure')
 
     if not len(P):
         raise ValueError('Forecast result is empty, cannot agregate to hours')
@@ -85,10 +86,14 @@ def furnace_optimization(S, furn_id, output_csv=None):
     for z in zones:
         try:
             model = joblib.load('./models/'+str(furn_id)+'/LGBMRegressor_'+z+'.joblib')
-        except RuntimeError:
+        except Exception as exc:
             print('Error: couldn\'t load model for zone {}'.format(z))
+            raise exc
 
-        y = model.predict(X)
+        try:
+            y = model.predict(X)
+        except:
+            raise RuntimeError('Optimization failure')
 
         G[z] = y
 
