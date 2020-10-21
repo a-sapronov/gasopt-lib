@@ -198,7 +198,7 @@ def remove_files_by_patterns(*args):
 def toDate(dateString): 
     date_from_string = None
     try:
-        date_from_string = datetime.strptime(dateString, "%Y-%m-%d %H:%M:%S").date()
+        date_from_string = datetime.strptime(dateString, "%Y-%m-%d").date()
     except:
         raise ValueError('Bad date format')
 

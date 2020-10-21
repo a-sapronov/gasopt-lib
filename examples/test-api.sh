@@ -11,7 +11,7 @@ if [[ $1 == 1 ]] || [[ "$test_all" = 1 ]]; then
 fi
 
 if [[ $1 == 2 ]] || [[ "$test_all" = 1 ]]; then
-	curl  -X GET "http://localhost:8000/forecast?date_st=2019-10-31+23:50:00&days_cnt=2&furn_id=1&shop_code=lpc10"
+	curl  -X GET "http://localhost:8000/forecast?date_st=2019-11-01&days_cnt=3&furn_id=1&shop_code=lpc10"
 fi
 
 if [[ $1 == 3 ]] || [[ "$test_all" = 1 ]]; then
