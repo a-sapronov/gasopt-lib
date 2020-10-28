@@ -127,7 +127,7 @@ def tses_forecast_data_process(input_data_str):
     '''
     zones = ['Unnamed: 0_level_0', 'Q ПГ ЦЭС', 'Температура окружающего воздуха']
 
-    D = pd.DataFrame(columns=['gas'])
+    D = pd.DataFrame(columns=['datetime', 'gas', 'dt_hour'])
     G = None
 
     try:
@@ -145,8 +145,9 @@ def tses_forecast_data_process(input_data_str):
         
     df.columns = ['datetime', 'gas', 'amb_t']
 
-    #df['datetime'] = df['datetime'].apply(fix_minutes)
-    df.set_index('datetime', drop=True, inplace=True)
+    D['datetime'] = df['datetime']
+    D['dt_hour'] = df['datetime'].dt.floor('H')
+    #df.set_index('datetime', drop=True, inplace=True)
 
     D['gas'] = df['gas']
         

@@ -41,7 +41,11 @@ def api_forecast():
         shop_code = request.args.get('shop_code')
 
         try:
-            D = furn_forecast_data_process(history_data_xlsx)
+            D = None
+            if shop_code == 'lpc10':
+                D = furn_forecast_data_process(history_data_xlsx)
+            elif shop_code == 'ces':
+                D = tses_forecast_data_process(history_data_xlsx)
         except Exception as e:
             print(repr(e))
             responses = jsonify(status=-1, error='Falied to preprocess historic data')
@@ -66,7 +70,7 @@ def api_forecast():
             return responses
 
         horizon_from_start = request.args.get('days_cnt', default=1, type=int)
-        furnace_id = request.args.get('furn_id', default=1, type=int)
+        furnace_id = request.args.get('furn_id', default=0, type=int)
         shop_code = request.args.get('shop_code')
 
         if not check_forecast_get_arguments(horizon_from_start, furnace_id, shop_code):
@@ -92,8 +96,12 @@ def api_forecast():
             scores = pd.read_pickle(scores_pkl)
         else:
             try:
-                F, scores = furnace_forecast(D,
-                        horizon=horizon_from_start+offset, furn_id=furnace_id)
+                if shop_code == 'lpc10':
+                    F, scores = furnace_forecast(D,
+                            horizon=horizon_from_start+offset, furn_id=furnace_id)
+                elif shop_code == 'ces':
+                    F, scores = generator_forecast(D,
+                            horizon=horizon_from_start+offset)
             except Exception as e:
                 print(repr(e))
                 responses = jsonify(status=-1, error='Forecast failure')
@@ -112,8 +120,6 @@ def api_forecast():
         responses.status_code = 200
 
     return (responses)
-
-
 
 @app.route('/optimize', methods=['POST'])
 def api_optimize():
