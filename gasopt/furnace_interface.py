@@ -43,7 +43,7 @@ def furnace_forecast(H, horizon, furn_id, output_csv=None):
     try:
         P, scores = mm.get_forecasts(gas_dataset, depth, horizon_hours)
     except: 
-        RuntimeError('Forecast failure'):
+        RuntimeError('Forecast failure')
 
     #mm.dump_all_models()
 
