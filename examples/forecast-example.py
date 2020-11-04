@@ -7,6 +7,6 @@ from gasopt.furnace_interface import furnace_forecast
 G = furn_forecast_data_process('./test_data/gas-expense-10.19.xlsx')
 
 # Получить прогноз для печи 1 с горизонтом в 2 суток и сохранить в CSV-файл "furn_forecast.csv"
-F = furnace_forecast(G, horizon=2, furn_id=1, output_csv='furn_forecast.csv')
+F, scores = furnace_forecast(G, horizon=2, furn_id=1, output_csv='furn_forecast.csv')
 
 print(F)

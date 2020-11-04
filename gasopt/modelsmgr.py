@@ -27,6 +27,7 @@ class ModelsMgr(object):
         self.models = {}
         mlp = MLPRegressor(hidden_layer_sizes=(10,5), activation='relu', solver='lbfgs')
         mre = MeanRegularizedExtrapolation(lag=depth, offset=offset, savgol=False, filter_window=11, filter_polyorder=1)
+        self.path_to_models = './examples/models/'
 
         self.models['FFNN'] = LinearNNRegression(lin_regressor=mre, nn_regressor=mlp)
         self.models['RNN'] = LinearRNN(lin_regressor=mre, horizon=horizon)
@@ -36,18 +37,19 @@ class ModelsMgr(object):
     def get_model_names(self):
         return self.models.keys()
 
-    def load(self, model_name):
-        self.models[model_name] = joblib.load(self.path_to_models+model_name+'.pkl')
+    def load(self, model_name, path_prefix=None):
+        self.models[model_name] = joblib.load(path_prefix+self.path_to_models+model_name+'.pkl')
 
-    def dump_model(self, model_name):
+    def dump_model(self, model_name, path_prefix=None):
         if model_name in self.models:
-            joblib.dump(self.models[model_name], model_name+'.pkl')
+            joblib.dump(self.models[model_name], self.path_to_models+model_name+'.pkl')
         else:
             raise ValueError('Unknown model name selected to dump')
 
     def dump_all_models(self):
-        for model_name, model in self.models:
-            joblib.dump(model, model_name+'.pkl')
+        for model_name, model in self.models.items():
+            print(self.path_to_models+model_name+'.pkl')
+            joblib.dump(model, self.path_to_models+model_name+'.pkl')
 
     def get_forecasts(self, H, depth, horizon):
         X, y = H.filter(regex='^f', axis=1).to_numpy(), H.filter(regex='^t', axis=1).to_numpy()

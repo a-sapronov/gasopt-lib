@@ -9,10 +9,10 @@ class TestDataManager(TestCase):
     def test_load_models(self):
         print("Проверка загрузки моделей...")
         test_models = {}
-        mm = modelsmgr.ModelsMgr()
+        mm = modelsmgr.ModelsMgr(depth=24, offset=0, horizon=48)
         for model in mm.get_model_names():
             try:
-                test_models[model] = mm.load(model)
+                test_models[model] = mm.load(model, path_prefix='../../')
             except ValueError:
                 print("Не смогли загрузить модель: ", model)
 
@@ -23,8 +23,9 @@ class TestDataManager(TestCase):
         print("Проверка загрузки данных...")
         dm = datamgr.DataMgr(furn=1)
         try:
-            dm.load_prediction_data(slabs_csv='examples/test_data/slabs_test.csv', gas_csv='examples/test_data/gas_test.csv',\
-                    ambient_csv='examples/test_data/ambient_test.csv')
+            dm.load_prediction_data(slabs_csv='../../examples/test_data/slabs_test.csv', \
+                    gas_csv='../../examples/test_data/gas_test.csv',\
+                    ambient_csv='../../examples/test_data/ambient_test.csv')
         except ValueError:
             print("Не смогли загрузить данные")
 
@@ -42,8 +43,9 @@ class TestDataManager(TestCase):
     def test_testdata_prep(self):
         dm = datamgr.DataMgr(furn=1)
         try:
-            dm.load_prediction_data(slabs_csv='examples/test_data/slabs_test.csv', gas_csv='examples/test_data/gas_test.csv',\
-                    ambient_csv='examples/test_data/ambient_test.csv')
+            dm.load_prediction_data(slabs_csv='../../examples/test_data/slabs_test.csv', \
+                    gas_csv='../../examples/test_data/gas_test.csv',\
+                    ambient_csv='../../examples/test_data/ambient_test.csv')
         except ValueError:
             print("Не смогли загрузить данные")
 
@@ -62,8 +64,9 @@ class TestDataManager(TestCase):
         print("Проверка загрузки данных...")
         dm = datamgr.DataMgr(furn=1)
         try:
-            dm.load_prediction_data(slabs_csv='examples/test_data/slabs_test.csv', gas_csv='examples/test_data/gas_test.csv',\
-                    ambient_csv='examples/test_data/ambient_test.csv')
+            dm.load_prediction_data(slabs_csv='../../examples/test_data/slabs_test.csv', \
+                    gas_csv='../../examples/test_data/gas_test.csv',\
+                    ambient_csv='../../examples/test_data/ambient_test.csv')
             #dm.load_optimization_data(slabs_csv='examples/test_data/slabs_train.csv', gas_csv='examples/test_data/gas_train.csv',\
             #        ambient_csv='examples/test_data/ambient_train.csv')
         except ValueError:
@@ -83,8 +86,9 @@ class TestDataManager(TestCase):
     def test_traindata_prep(self):
         dm = datamgr.DataMgr(furn=1)
         try:
-            dm.load_prediction_data(slabs_csv='examples/test_data/slabs_test.csv', gas_csv='examples/test_data/gas_test.csv',\
-                    ambient_csv='examples/test_data/ambient_test.csv')
+            dm.load_prediction_data(slabs_csv='../../examples/test_data/slabs_test.csv', \
+                    gas_csv='../../examples/test_data/gas_test.csv',\
+                    ambient_csv='../../examples/test_data/ambient_test.csv')
         except ValueError:
             print("Не смогли загрузить данные")
 

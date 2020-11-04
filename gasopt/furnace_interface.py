@@ -42,8 +42,10 @@ def furnace_forecast(H, horizon, furn_id, output_csv=None):
     P, scores = None, None
     try:
         P, scores = mm.get_forecasts(gas_dataset, depth, horizon_hours)
-    except:
-        raise RuntimeError('Forecast failure')
+    except: 
+        RuntimeError('Forecast failure'):
+
+    #mm.dump_all_models()
 
     if not len(P):
         raise ValueError('Forecast result is empty, cannot agregate to hours')
