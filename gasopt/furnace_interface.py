@@ -27,13 +27,13 @@ def furnace_forecast(H, horizon, furn_id, output_csv=None):
     '''
 
     depth = 24
-    training_depth = 720
+    training_depth = 24*max(2*horizon, 30)
     if len(H) < training_depth:
         raise ValueError('Not enough data for forecast training. \n  \
-            Need at least one month of hourly data of gas consumption')
+            Need at least twice of the horizon')
 
-    if horizon > 7:
-        raise ValueError('The requested forecasting horizon is too long.')
+    #if horizon > 7:
+    #    raise ValueError('The requested forecasting horizon is too long.')
 
     horizon_hours = horizon*24
     gas_dataset = build_furn_dataset(H[-training_depth:], depth, horizon_hours, furn_id)

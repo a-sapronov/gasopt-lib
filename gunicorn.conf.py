@@ -3,5 +3,5 @@
 bind = "127.0.0.1:8000"
 #workers = multiprocessing.cpu_count() * 2 + 1
 
-timeout = 120
-graceful_timeout = 120
+timeout = 360
+graceful_timeout = 360

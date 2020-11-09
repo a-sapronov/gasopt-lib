@@ -61,13 +61,13 @@ def api_forecast():
 
     if request.method == 'GET':
 
-        date_str = request.args.get('date_st', default='today', type=str)
+        date_str = request.args.get('date_st', default='history_last', type=str)
         #print(datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S").date())
         date_start = request.args.get('date_st', default=None, type=toDate)
-        if not date_start:
-            responses = jsonify(status=-1, error='Bad start date format')
-            responses.status_code = 200
-            return responses
+        #if not date_start:
+        #    responses = jsonify(status=-1, error='Bad start date format')
+        #    responses.status_code = 200
+        #    return responses
 
         horizon_from_start = request.args.get('days_cnt', default=1, type=int)
         furnace_id = request.args.get('furn_id', default=0, type=int)
@@ -82,9 +82,17 @@ def api_forecast():
         scores_pkl = f'./{shop_code}_scores_s_{date_str}_h_{horizon_from_start}_furn_{furnace_id}.pkl'
         F, scores = None, None
 
-        D = pd.read_pickle(f'{shop_code}_{HISTORY_PREPROCESSED_DATA_FNAME}')
+        D = None
+        try:
+            D = pd.read_pickle(f'{shop_code}_{HISTORY_PREPROCESSED_DATA_FNAME}')
+        except Exception as e:
+            print(repr(e))
+            responses = jsonify(status=-1, error='No history data found')
+            responses.status_code = 200
+            return(responses)
+
         last_history_date = D.dt_hour.iloc[-1].date()
-        offset = (date_start - last_history_date).days
+        offset = (date_start - last_history_date).days if date_start is not None else 0
 
         if offset < 0:
             responses = jsonify(status=-1, error='Invalid forecast start date: must be later than the last historic data date')
@@ -200,7 +208,7 @@ def check_forecast_post_arguments(request_args):
 
 def check_forecast_get_arguments(horizon, furnace_id, shop_code):
     ret = False
-    if horizon > 0  and horizon  <= 7  \
+    if horizon > 0   \
         and ((shop_code == 'lpc10' and furnace_id in [1, 2, 3, 4]) \
                 or (shop_code == 'ces')):
         ret = True

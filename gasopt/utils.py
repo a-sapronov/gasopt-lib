@@ -3,6 +3,8 @@ import numpy as np
 from sklearn.utils import check_array
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
+import numpy.ma as ma
+
 
 def mean_absolute_scaled_error(y_train, y_test, y_pred):
     """
@@ -32,10 +34,12 @@ def compute_metrics(y_train, y_test, y_pred):
     
     y_true = check_array(y_test)
     y_pred = check_array(y_pred)
+
+    mask_y_test = ma.masked_values(y_test, 0.)
     
     metrics['mae'] = mean_absolute_error(y_test, y_pred)
     metrics['rmse'] = np.sqrt(mean_squared_error(y_test, y_pred))
-    metrics['mape'] = np.mean(np.abs((y_test - y_pred) / y_test)) * 100
+    metrics['mape'] = np.mean(np.abs((y_test - y_pred) / mask_y_test)) * 100
     metrics['mase'] = mean_absolute_scaled_error(y_train, y_test, y_pred)
     
     return metrics
