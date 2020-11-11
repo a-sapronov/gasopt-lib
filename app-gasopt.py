@@ -112,7 +112,7 @@ def api_forecast():
                             horizon=horizon_from_start+offset)
             except Exception as e:
                 print(repr(e))
-                responses = jsonify(status=-1, error='Forecast failure')
+                responses = jsonify(status=-1, error='Forecast failure: '+str(e))
                 responses.status_code = 200
                 return responses
 
